@@ -8,19 +8,29 @@
 
 #include "app/Window.h"
 
-
 class Shader;
-class Renderable;
-
+class Circle;
 
 class App : private Window
 {
 public:
     static App & getInstance();
-
     void run();
 
 private:
+    struct BallState
+    {
+        glm::vec2 centerNdc {0.0f, 0.0f};
+        glm::vec2 velocityNdc {0.0f, 0.0f};
+        float radiusNdc {0.1f};
+    };
+
+    struct BallConfig
+    {
+        float radiusNdc {0.1f};
+        glm::vec2 velocityNdc {0.25f, 0.15f};
+    };
+
     static void cursorPosCallback(GLFWwindow *, double, double);
     static void framebufferSizeCallback(GLFWwindow *, int, int);
     static void keyCallback(GLFWwindow *, int, int, int, int);
@@ -30,42 +40,43 @@ private:
     static void perFrameTimeLogic(GLFWwindow *);
     static void processKeyInput(GLFWwindow *);
 
-    // from CMakeLists.txt, compile definition
     static constexpr char kWindowName[] {WINDOW_NAME};
     static constexpr int kWindowWidth {1000};
     static constexpr int kWindowHeight {1000};
+    
+    int currentWidth {kWindowWidth};
+    int currentHeight {kWindowHeight};
 
 private:
     App();
 
+    void update();
     void render();
 
-    // Shaders.
-    // In principle, a shader could be reused across multiple objects.
-    // Thus, these shaders are not designed as members of object classes.
-    std::unique_ptr<Shader> pTriangleShader {nullptr};
+    BallConfig readBallConfig() const;
+    glm::vec2 screenToNdc(const glm::dvec2 & p) const;
+    glm::vec3 ballToCircleParameter(const BallState & ball) const;
+    void syncCircleRenderer();
+    bool canSpawnBall(const BallState & candidate) const;
+    void trySpawnBall();
+    void resolveWallCollision(BallState & ball);
+    void resolveBallCollision(BallState & a, BallState & b);
+
     std::unique_ptr<Shader> pCircleShader {nullptr};
+    std::unique_ptr<Circle> pCircleShape {nullptr};
 
-    // Objects to render.
-    std::vector<std::unique_ptr<Renderable>> shapes;
+    std::vector<BallState> balls;
 
-    // Object attributes affected by GUI.
     bool animationEnabled {true};
+    bool bouncingBallMode {false};
 
-    // Frontend GUI
     double timeElapsedSinceLastFrame {0.0};
     double lastFrameTimeStamp {0.0};
 
     bool mousePressed {false};
     glm::dvec2 mousePos {0.0, 0.0};
-
-    // Note lastMouseLeftClickPos is different from lastMouseLeftPressPos.
-    // If you press left button (and hold it there) and move the mouse,
-    // lastMouseLeftPressPos gets updated to the current mouse position
-    // (while lastMouseLeftClickPos, if there is one, remains the original value).
     glm::dvec2 lastMouseLeftClickPos {0.0, 0.0};
     glm::dvec2 lastMouseLeftPressPos {0.0, 0.0};
 };
-
 
 #endif  // APP_H

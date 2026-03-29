@@ -1,7 +1,6 @@
 #ifndef CIRCLE_H
 #define CIRCLE_H
 
-
 #include <vector>
 
 #include <glad/glad.h>
@@ -9,9 +8,7 @@
 
 #include "shape/GLShape.h"
 
-
 class Shader;
-
 
 // Circle[s] class, this class represents MULTIPLE circles.
 class Circle : public Renderable, public GLShape
@@ -22,10 +19,10 @@ public:
     ~Circle() noexcept override = default;
 
     void render(float timeElapsedSinceLastFrame, bool animate) override;
+    void setParameters(const std::vector<glm::vec3> & newParameters);
 
 private:
     std::vector<glm::vec3> parameters;
 };
-
 
 #endif  // CIRCLE_H
